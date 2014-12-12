@@ -23,17 +23,18 @@ This appender pushes log messages to a Redis list. Here is an example configurat
 
 Or in log4j.xml format
 
-       <appender name="redis" class="com.ryantenney.log4j.RedisAppender">
+       <appender name="redis" class="client.redis.log4jAppender.RedisAppender">
                 <param name="key" value="keylog" />
-                <param name="host" value="localhost" />
-                <param name="port" value="6379" />
-                <!--<param name="password" value="secret" />-->
+                <param name="hosts" value="10.40.64.220:7000" />
                 <param name="mode" value="channel" />
-                <!--<param name="mode" value="list" />-->
+                <param name="firstDelay" value="250" />
                 <param name="batchSize" value="100" />
+                <param name="attemptDelay" value="1000" />
+                <param name="numberRetryToRedis" value="5" />
+                <param name="period" value="150" />
                 <param name="alwaysBatch" value="true" />
                 <layout class="org.apache.log4j.PatternLayout">
-                        <param name="ConversionPattern" value="%d{ISO8601} %-5p %c %x - [system_name] - (%X{mdc1}) (%X{mdc2}) - %m  %n" />
+                        <param name="ConversionPattern" value="%d{ISO8601} %-5p %c %x - [vm02-account] - (%X{userId}) (%X{authToken}) (%X{request}) (%X{sessionId}) - %m  %n" />
                 </layout>
         </appender>
 
