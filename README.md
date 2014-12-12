@@ -66,7 +66,7 @@ Where:
 
 ```xml
 <dependency>
-	<groupId>com.jfgrim.redis4log4j</groupId>
+	<groupId>client.redis.log4jAppender</groupId>
 	<artifactId>redis4Log4j</artifactId>
 	<version>1.0.0</version>
 </dependency>
