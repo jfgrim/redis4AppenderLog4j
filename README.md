@@ -78,7 +78,7 @@ Goes great with [@lusis's log4j-jsonevent-layout](https://github.com/lusis/log4j
 
 ### License
 
-Copyright (c) 2012-2013 Ryan Tenney
+Copyright (c) 2014 JeF Grimault
 
 Published under Apache Software License 2.0, see LICENSE
 
