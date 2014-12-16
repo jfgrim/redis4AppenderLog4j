@@ -52,7 +52,7 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 	// Parameters for list mode
 	private int batchSize = 100;
 	private boolean alwaysBatch = true;
-	private boolean purgeOnFailure = true;
+	private boolean purgeOnFailure = false;
 	private boolean daemonThread = true;
 
 	private int messageIndex = 0;
@@ -169,8 +169,8 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 	private void connect() {
 		try {
 			if (jedis != null) jedis.disconnect();
-
 			jedis = null; // in case if jedis is disconnect only
+
 			//Using modulo block to avoid synchronization in which the variable is modified activeJmsBrokerNumber
 			int redisNum = (int) (activeRedisNumber.getAndIncrement() % hostPorts.length);
 			String[] hostPort = hostPorts[redisNum].split(":");
@@ -178,6 +178,13 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 			int port = Integer.valueOf(hostPort[1]);
 			jedis = new Jedis(host, port);
 			jedis.connect();
+
+			if (password != null && !password.isEmpty()) {
+				String result = jedis.auth(password);
+				if (!"OK".equals(result)) {
+					LogLog.error("Error authenticating with Redis: " + host);
+				}
+			}
 
 			if (retry > 0) {
 				LogLog.warn("[" + host + "] Connection to Redis reestablished after " + retry + " attempt(s)");
@@ -236,6 +243,11 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 			messageIndex = 0;
 			retry = 0;
 		} catch (JedisConnectionException jce) {
+			if (purgeOnFailure) {
+				LogLog.debug("Purging event queue");
+				events.clear();
+				messageIndex = 0;
+			}
 			LogLog.error("Error Jedis Connection during sending message with pushing method", jce);
 			if (jce.getMessage().contains("closed the connection")) {
 				//Connection closed : swith an other redis connection

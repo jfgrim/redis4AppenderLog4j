@@ -28,11 +28,10 @@ Or in log4j.xml format
                 <param name="hosts" value="localhost:6379,10.10.3.3:7000" />
                 <param name="mode" value="channel" />
                 <param name="firstDelay" value="250" />
-                <param name="batchSize" value="100" />
                 <param name="attemptDelay" value=3000" />
                 <param name="numberRetryToRedis" value="3" />
-                <param name="period" value="150" />
-                <param name="alwaysBatch" value="true" />
+                <param name="period" value="100" />
+                <param name="purgeOnFailure" value="false" />
                 <layout class="org.apache.log4j.PatternLayout">
                         <param name="ConversionPattern" value="%d{ISO8601} %-5p %c %x - [vm02-account] - (%X{userId}) (%X{authToken}) (%X{request}) (%X{sessionId}) - %m  %n" />
                 </layout>
@@ -56,9 +55,9 @@ Where:
 * **hosts** (optional, default: localhost:6379) name (or ip) and port for connection in host
 * **password** (optional) redis password, if required
 * **period** (optional, default: 500) the period in milliseconds between each send messages
-* **batchSize** (optional, default: 100) the number of log messages to send in a single `RPUSH` command
-* **purgeOnFailure** (optional, default: true) whether to purge the enqueued log messages if an error occurs attempting to connect to redis, thus preventing the memory usage from becoming too high
-* **alwaysBatch** (optional, default: true) whether to wait for a full batch. if true, will only send once there are `batchSize` log messages enqueued
+* **batchSize** (optional, use in mode 'list', default: 100) the number of log messages to send in a single `RPUSH` command
+* **purgeOnFailure** (optional, default: false, recommendation in mode 'list': true) whether to purge the enqueued log messages if an error occurs attempting to connect to redis, thus preventing the memory usage from becoming too high
+* **alwaysBatch** (optional, use in mode 'list', default: true) whether to wait for a full batch. if true, will only send once there are `batchSize` log messages enqueued
 * **daemonThread** (optional, default: true) whether to launch the appender thread as a daemon thread
 * **attemptDelay** (optional, default: 2000) period of time between each attempt to connect to REDIS
 * **numberRetryToRedis** (optional, default: 2) number of connection test to REDIS
