@@ -26,7 +26,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.util.SafeEncoder;
 
-import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.*;
