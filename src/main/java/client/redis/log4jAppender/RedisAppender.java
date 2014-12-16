@@ -26,6 +26,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.util.SafeEncoder;
 
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -45,8 +46,8 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 	//timer sender messages in the REDIS in milliseconds => 50ms for Publishing and 500ms for Pushing with BachSize = 100
 	private long period = 100;
 	// Parameters for Fault Tolerance and retrying connections
-	private int numberRetryToRedis = 7; // the last number of attemptDelay is run two times
-	private String attemptDelay = "500,1000,1000,2000,2000,5000"; // in milliseconds
+	private int numberRetryToRedis = 2; // the last number of attemptDelay is run two times
+	private long attemptDelay = 3000; // in milliseconds
 
 	private final AtomicLong activeRedisNumber = new AtomicLong();
 	// Parameters for list mode
@@ -168,6 +169,8 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 	// PRIVATE METHOD
 	private void connect() {
 		try {
+			if (jedis != null) jedis.disconnect();
+
 			jedis = null; // in case if jedis is disconnect only
 			//Using modulo block to avoid synchronization in which the variable is modified activeJmsBrokerNumber
 			int redisNum = (int) (activeRedisNumber.getAndIncrement() % hostPorts.length);
@@ -204,15 +207,13 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 	 * we test shipment to another repeat (if there are in settings)
 	 */
 	private void scheduleReattempt(){
-		if (numberRetryToRedis == -1 || retry < numberRetryToRedis) {
+		if (numberRetryToRedis == -1 || retry++ < numberRetryToRedis) {
 			task.cancel(false);
-			task = executor.scheduleWithFixedDelay(this,getRedisConnectionRetryDelayFor(retry),period,TimeUnit.MILLISECONDS);
-			LogLog.debug("[" + retry + "] Retrying connection to Redis in progress ... ");
-			retry++;
+			LogLog.debug("[" + retry + "]ieme Retrying connection to Redis in progress ... ");
 			pingRedis(); //avoids losses messages
 			run();
 		} else {
-			if (activeRedisNumber.intValue() >= hostPorts.length + 3) {
+			if (activeRedisNumber.intValue() <= hostPorts.length + 3) {
 				LogLog.debug("Retrying after [" + retry + "] attempts connection to Other Redis in progress ... ");
 				jedis = null;
 				task.cancel(false);
@@ -236,7 +237,7 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 			messageIndex = 0;
 			retry = 0;
 		} catch (JedisConnectionException jce) {
-			LogLog.error("Error during sending message with pushing method", jce);
+			LogLog.error("Error Jedis Connection during sending message with pushing method", jce);
 			if (jce.getMessage().contains("closed the connection")) {
 				//Connection closed : swith an other redis connection
 				LogLog.error("Error with redis server : connection closed");
@@ -252,7 +253,7 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 			jedis.publish(SafeEncoder.encode(key), SafeEncoder.encode(message));
 			retry = 0;
 		} catch (JedisConnectionException jce) {
-			LogLog.error("Error during sending message with publishing method", jce);
+			LogLog.error("Error Jedis Connection during sending message with publishing method", jce);
 			if (jce.getMessage().contains("closed the connection")) {
 				//Connection closed : swith an other redis connection
 				LogLog.error("Error with redis server : connection closed");
@@ -265,6 +266,7 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 	private void pingRedis() {
 		try {
 			LogLog.debug("Ping to Redis");
+			Thread.sleep(attemptDelay);
 			if (jedis == null) {
 				connect();
 			}
@@ -272,19 +274,9 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 		} catch (JedisConnectionException jce) {
 			LogLog.error("Error during ping method", jce);
 			scheduleReattempt();
+		} catch (InterruptedException e) {
+			LogLog.error("Error during ping method with sleep mode", e);
 		}
-	}
-
-	/**
-	 * Returns the waiting delay before trying to establish a connection with the Redis server
-	 * @param retry counter indicating the number of attempts that have failed.
-	 * @return delay in millisecond
-	 */
-	private long getRedisConnectionRetryDelayFor(int retry) {
-		String[] listTimeout = attemptDelay.contains(",") ? attemptDelay.split(","): new String[]{attemptDelay};
-		int index = Math.min(retry, listTimeout.length - 1 );
-		Long delay = (index < listTimeout.length)? Long.valueOf(listTimeout[index]):Long.valueOf(listTimeout[listTimeout.length - 1]);
-		return delay;
 	}
 
 	//SETTER
@@ -332,7 +324,7 @@ public class RedisAppender extends AppenderSkeleton implements Runnable {
 		this.numberRetryToRedis = numberRetryToRedis;
 	}
 
-	public void setAttemptDelay(String attemptDelay) {
+	public void setAttemptDelay(long attemptDelay) {
 		this.attemptDelay = attemptDelay;
 	}
 

@@ -11,9 +11,9 @@ This appender pushes log messages to a Redis list. Here is an example configurat
     log4j.rootLogger=DEBUG, redis
     log4j.appender.redis=RedisAppender
     log4j.appender.redis.layout=…
-    log4j.appender.redis.host=localhost
-    log4j.appender.redis.port=6379
+    log4j.appender.redis.hosts=localhost:6379,10.10.3.3:7000
     log4j.appender.redis.password=password
+    log4j.appender.redis.mode=list
     log4j.appender.redis.key=key
     log4j.appender.redis.period=500
     log4j.appender.redis.batchSize=100
@@ -24,13 +24,13 @@ This appender pushes log messages to a Redis list. Here is an example configurat
 Or in log4j.xml format
 
        <appender name="redis" class="client.redis.log4jAppender.RedisAppender">
-                <param name="key" value="keylog" />
-                <param name="hosts" value="10.40.64.220:7000" />
+                <param name="key" value="key" />
+                <param name="hosts" value="localhost:6379,10.10.3.3:7000" />
                 <param name="mode" value="channel" />
                 <param name="firstDelay" value="250" />
                 <param name="batchSize" value="100" />
-                <param name="attemptDelay" value="1000" />
-                <param name="numberRetryToRedis" value="5" />
+                <param name="attemptDelay" value="2000" />
+                <param name="numberRetryToRedis" value="3" />
                 <param name="period" value="150" />
                 <param name="alwaysBatch" value="true" />
                 <layout class="org.apache.log4j.PatternLayout">
@@ -52,15 +52,16 @@ or
 
 Where:
 
-* **key** (_required_) key of the list to push log messages
-* **host** (optional, default: localhost)
-* **port** (optional, default: 6379)
+* **key** (_required_) key of the list to push or publish log messages
+* **hosts** (optional, default: localhost:6379) name (or ip) and port for connection in host
 * **password** (optional) redis password, if required
-* **period** (optional, default: 500) the period in milliseconds between 
+* **period** (optional, default: 500) the period in milliseconds between each send messages
 * **batchSize** (optional, default: 100) the number of log messages to send in a single `RPUSH` command
 * **purgeOnFailure** (optional, default: true) whether to purge the enqueued log messages if an error occurs attempting to connect to redis, thus preventing the memory usage from becoming too high
 * **alwaysBatch** (optional, default: true) whether to wait for a full batch. if true, will only send once there are `batchSize` log messages enqueued
 * **daemonThread** (optional, default: true) whether to launch the appender thread as a daemon thread
+* **attemptDelay** (optional, default: 2000) period of time between each attempt to connect to REDIS
+* **numberRetryToRedis** (optional, default: 2) number of connection test to REDIS
 
 ### Maven
 
