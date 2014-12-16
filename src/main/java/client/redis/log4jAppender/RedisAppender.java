@@ -1,7 +1,7 @@
 /**
 * This file is part of log4j-redis-appender
 *
- Copyright 2012 Ryan Tenney
+ Copyright 2012 Jef GRIMAULT
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
