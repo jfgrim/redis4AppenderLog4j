@@ -29,7 +29,7 @@ Or in log4j.xml format
                 <param name="mode" value="channel" />
                 <param name="firstDelay" value="250" />
                 <param name="batchSize" value="100" />
-                <param name="attemptDelay" value="2000" />
+                <param name="attemptDelay" value=3000" />
                 <param name="numberRetryToRedis" value="3" />
                 <param name="period" value="150" />
                 <param name="alwaysBatch" value="true" />
