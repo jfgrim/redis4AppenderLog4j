@@ -25,7 +25,7 @@ Or in log4j.xml format
 
        <appender name="redis" class="client.redis.log4jAppender.RedisAppender">
                 <param name="key" value="key" />
-                <param name="hosts" value="localhost:6379,10.10.3.3:7000" />
+                <param name="hosts" value="localhost:6379,10.10.3.3:7000,10.10.3.4:7000" />
                 <param name="mode" value="channel" />
                 <param name="firstDelay" value="250" />
                 <param name="attemptDelay" value=3000" />
@@ -52,7 +52,7 @@ or
 Where:
 
 * **key** (_required_) key of the list to push or publish log messages
-* **hosts** (optional, default: localhost:6379) name (or ip) and port for connection in host
+* **hosts** (optional, default: localhost:6379) name (or ip) and port for connection in host. If you want the "Fault Tolerance", you must put severals hosts names and ports
 * **password** (optional) redis password, if required
 * **period** (optional, default: 500) the period in milliseconds between each send messages
 * **batchSize** (optional, use in mode 'list', default: 100) the number of log messages to send in a single `RPUSH` command
